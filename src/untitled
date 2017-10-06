@@ -1,0 +1,63 @@
+import React, { Component } from 'react';
+import logo from './logo.svg';
+import './App.css';
+import BigCalendar from 'react-big-calendar';
+import moment from 'moment';
+import request from 'superagent'
+import { render } from 'react-dom'
+
+const CALENDAR_ID = '2qm6bc113of43opcqnsiernk5s@group.calendar.google.com';
+const API_KEY = 'AIzaSyCGFci7s06zoPhyF0d92Lu57BpGOkiszy0';
+let url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?key=${API_KEY}`;
+
+export function getEvents (callback) {
+  request
+    .get(url)
+    .end((err, resp) => {
+      if (!err) {
+        const events = []
+        JSON.parse(resp.text).items.map((event) => {
+          console.log(event.description)
+          events.push({
+            start: event.start.dateTime),
+            end: moment(event.end.dateTime),
+            title: event.summary,
+            // description: event.description,
+          })
+        })
+        console.log(events);
+        console.log(new Date('Tue, 10 Jan 2017 17:33:00 UTC +00:00'))
+        callback(events)
+      }
+    })
+}
+BigCalendar.setLocalizer(
+  BigCalendar.momentLocalizer(moment)
+);
+require('react-big-calendar/lib/css/react-big-calendar.css')
+
+class App extends React.Component {
+  constructor () {
+    super()
+    this.state = {
+      events: []
+    }
+  }
+  componentDidMount () {
+    getEvents((events) => {
+      this.setState({events})
+    })
+  }
+  render () {
+    return (
+      // React Components in JSX look like HTML tags
+      <BigCalendar
+        {...this.props}
+        views={['month', 'agenda']}
+        style={{height: '420px'}}
+        events={this.state.events} />
+    )
+  }
+}
+
+export default App;
